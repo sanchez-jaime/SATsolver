@@ -1,5 +1,11 @@
-**/.vscode/
+# Specific executable name (Linux/macOS)
+mySAT
+
+# Windows executables
 *.exe
+
+# Other build artifacts
+**/.vscode/
 *.out
 *.o
 *.obj
