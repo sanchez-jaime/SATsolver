@@ -1,0 +1,12 @@
+c
+c SAT instance in DIMACS CNF input format.
+c
+p cnf 4 8
+1 2 3 0
+1 2 -3 0
+-1 2 -3 0
+1 3 4 0
+-1 3 4 0
+-1 3 -4 0
+-2 -3 -4 0
+-2 -3 4 0
