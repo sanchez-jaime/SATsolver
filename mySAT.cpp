@@ -14,6 +14,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <deque>
 //#include <map>
 
 /**
@@ -84,19 +85,19 @@ CNF_Formula initialize_cnf_formula(const Formula& parsed_cnf_formula) {
     }
     return this_formula;
 }
-// /**
-//  * Function that simplies the formula by first looking at any literal that appears in only one polarity.
-//  * Use to preform the pure literal rule before the main DPLL recursion.
-//  */
-// int preprocess(const CNF_Formula& formula) {
-//     // Placeholder for the preprocessing step of the DPLL algorithm
-//     // This function should apply the pure literal rule.
-//     //std::vector<int> literal_assginments;
+/**
+ * Function that perfoms unit clause elimination as a preprocessing step for the DPLL algorithm. 
+ * (a.k.a.) If there is a clause with only one literal, then that literal must be assigned a value that satisfies the clause.
+ */
+int unit_clause(const CNF_Formula& formula) {
+    // Placeholder for the preprocessing step of the DPLL algorithm
+    // This function should apply the pure literal rule.
+    //std::vector<int> literal_assginments;
 
-//     /* Count the occurrences of each literal in the formula and assigned the count in a map*/
+    /* Count the occurrences of each literal in the formula and assigned the count in a map*/
     
-//     return 0; // Placeholder return value
-// }
+    return 0; // Placeholder return value
+}
 
 
 struct Current_Variable_Node
@@ -105,58 +106,108 @@ struct Current_Variable_Node
     int polarity; /* the polarity of the variable assignment in the current node of the search tree. 1 for true, -1 for false */
 };
 
+
+// struct Watched_Literals_Node
+// {
+//     int clause_index; /* the index of the clause that is being watched in the current node of the search tree */
+//     int watched_literal_1; /* the first watched literal for the clause being watched in the current node of the search tree */
+//     int index_of_watched_literal_1; /* the index of the first watched literal in the clause being watched in the current node of the search tree */
+//     int watched_literal_2; /* the second watched literal for the clause being watched in the current node of the search tree */
+//     int index_of_watched_literal_2; /* the index of the second watched literal in the clause being watched in the current node of the search tree */
+
+//     bool is_clause_satisfied; /* boolean that represents whether the clause being watched is satisfied or not in the current node of the search tree, initialized to false */
+// };
+
+
+
+struct WatchPositions {
+    int first;
+    int second;
+};
+
+struct All_Watched_Literals {
+    // Both are sized (num_vars + 1); index 0 is unused so variable v maps directly to index v.
+    // Each index represents a watched literal. The value at each index is a vector of clause thare are currently watching that literal.
+    std::vector<std::vector<int>> watches_pos;
+    std::vector<std::vector<int>> watches_neg;
+
+    // For each clause, which two literal positions within that clause are watched.
+    // For unit clauses, second == -1 is used as a sentinel.
+    // Takes into account the 0-based indexing of the literals within the clause.
+    std::vector<WatchPositions> clause_watch_positions;
+
+    // Literals forced true/false by unit clauses, awaiting propagation.
+    // Stored as signed literals (positive means assign true, negative means assign false).
+    std::deque<int> unit_propagation_queue;
+};
+
 /**
- * Function that assigns a clause if it is satisfied or not based on the current variable assignments from the search tree.
+ * Helper that returns a reference to the watch list for a given signed literal.
+ * Positive literals go to watches_pos; negative literals go to watches_neg.
+ * For example, if the literal is 2, then the function will return a reference to calueses are on watches_pos[2].
  */
-std::vector<int> mark_clauses_assignment(CNF_Formula& formula, const Current_Variable_Node& current_node) {
-
-
-    for(int i=0; i<formula.clauses.size(); i++)
-    {
-        /* if a clause is not satified, look to see if the current choosen node polarity and variable assgiment match to satisfy the caluse*/
-        if(!formula.clauses[i].is_satisfied)
-        {
-            for(int j=0; j<formula.clauses[i].literals.size(); j++)
-            {
-                if(formula.clauses[i].literals[j] == current_node.variable * current_node.polarity) 
-                {
-                    formula.clauses[i].is_satisfied = true; // Mark the clause as satisfied
-                    break; // No need to check other literals in this clause
-                }
-            }
-        }
+std::vector<int>& get_watch_list(All_Watched_Literals& awl, int literal) {
+    if (literal > 0) {
+        return awl.watches_pos[literal];
+    } else {
+        return awl.watches_neg[std::abs(literal)]; //negative literal, so we take the absolute value to index into watches_neg
     }
+}
 
-    return std::vector<int>(); // Placeholder return value
+/**
+ * Const overload for read-only access during propagation.
+ */
+const std::vector<int>& get_watch_list(const All_Watched_Literals& awl, int literal) {
+    return (literal > 0) ? awl.watches_pos[literal]
+                         : awl.watches_neg[std::abs(literal)];
+}
+
+/**
+ * Function that initializes the watched literals for each clause in the formula.
+ * @param formula: the CNF formula for which to initialize watched literals
+ * @param awl: the structure to store all watched literals
+ * @return false if the formula contains an empty clause (trivially UNSAT), true otherwise
+ */
+bool initialize_watched_literals(const CNF_Formula& formula, All_Watched_Literals& awl) {
+    // Size (num_vars + 1) so variable v maps directly to index v (index 0 unused).
+    awl.watches_pos.assign(formula.num_vars + 1, {});
+    awl.watches_neg.assign(formula.num_vars + 1, {});
+    awl.clause_watch_positions.reserve(formula.clauses.size());
+
+    for (size_t i = 0; i < formula.clauses.size(); ++i) {
+        const auto& lits = formula.clauses[i].literals;
+
+        if (lits.empty()) return false;   // trivial UNSAT
+
+        if (lits.size() == 1) {
+            // Unit clause: no watches needed for this specific case, queue the literal for propagation.
+            awl.unit_propagation_queue.push_back(lits[0]);
+            awl.clause_watch_positions.push_back({0, -1});  // sentinel: unit clause
+            continue;
+        }
+
+        // Normal case: watch the first two literal positions in the clause.
+        awl.clause_watch_positions.push_back({0, 1});
+        get_watch_list(awl, lits[0]).push_back(static_cast<int>(i));
+        get_watch_list(awl, lits[1]).push_back(static_cast<int>(i));
+    }
+    return true;
 }
 
 
-
-
-
-
-
-
-
+/**
+ * Function that perfoms boolean constraint propagation (BCP) with the two watched literals heuristic. 
+ * 
+ */
 bool bcp(CNF_Formula& formula) {
     
     for(int i = 0; i < formula.clauses.size(); i++)
     {
-        /* if a clause is not satified, look to see if there is a single unassigned literal */
-        if(!formula.clauses[i].is_satisfied)
-        {
-            for(int j = 0; j < formula.clauses[i].literals.size(); j++)
-            {
-                if(formula.clauses[i].literals[j] == 0) 
-                {
-                    formula.clauses[i].is_satisfied = true; // Mark the clause as satisfied
-                    break; // No need to check other literals in this clause
-                }
-            }
-            
-        }
+        
     }
     
+
+
     return false; // Placeholder return value
 }
 
@@ -164,7 +215,7 @@ bool bcp(CNF_Formula& formula) {
 bool dpll(CNF_Formula& formula) {
     // Placeholder for the DPLL algorithm implementation
     // This function should return true if the formula is satisfiable, and false otherwise.
-
+    std::cout << "Doing SAT stuff\n";
     /* base case, look for for unit clauses*/
     if(bcp(formula)){
         return true; // all clauses are satisfied
@@ -194,6 +245,7 @@ bool dpll(CNF_Formula& formula) {
 
 int main(int argc, char* argv[]) {
 
+    //==============Verify Arguments and the Benchmark File================
     /* verify number of args given*/
     if (argc != 2)
     {
@@ -220,15 +272,27 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    /* create clauses*/
+    //==============Initiailize data structures for DPLL================
+
+    /* create clauses, redundant but used to seperate AI generated code to my own driven development/design*/
     CNF_Formula my_Formula= initialize_cnf_formula(parsed_cnf_formula);
 
+    /* initialize watched literals data structure */
+    All_Watched_Literals watched_literals;
+    if(!initialize_watched_literals(my_Formula, watched_literals))
+    {
+        std::cout << "ERROR: failed to initialize watched literals\n";
+        std::cout << "RESULT:UNSAT\n";
+        return 1;
+    }
+
+    //==============Run SAT Solver algorithm================
     /* run dpll*/
     bool is_satisfiable = dpll(my_Formula);
 
 
 
-
+    //==============Print Output================
     if (is_satisfiable) {
         std::cout << "RESULT:SAT\n";
         //TODO print litral assignments
