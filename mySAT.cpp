@@ -158,7 +158,7 @@ std::vector<int>& get_watch_list(All_Watched_Literals& awl, int literal) {
 }
 
 /**
- * 
+ * Helper function that only reads the watch list for a given signed literal. Positive literals go to watches_pos; negative literals go to watches_neg.
  */
 const std::vector<int>& get_watch_list(const All_Watched_Literals& awl, int literal) {
     if (literal > 0) 
@@ -204,6 +204,57 @@ bool initialize_watched_literals(const CNF_Formula& formula, All_Watched_Literal
     }
     return true;
 }
+
+
+enum Assignement : int {
+    UNASSIGNED      = 0,
+    ASSIGN_TRUE     = 1,
+    ASSIGN_FALSE    = -1
+};
+
+/**
+ * Structure to hold literal assignments during the solving process.
+ * Using struct for simplicity, can be refactored to a class if needed in the future
+ */
+struct Literal_Assignments {
+    std::vector<Assignement> tracking_assigments; //vector used to track literal assignments through propagation and backtracking
+    std::vector<int> trail_assigments; //vector for the trail of literals, used for backtracking
+
+    void initialize_tracking_assignments(int num_vars) {
+        tracking_assigments.resize(num_vars + 1, UNASSIGNED); // Initialize all variables to unassigned (0)
+    }
+
+    
+    void assign_literal(int literal) {
+        int var = std::abs(literal);
+
+        //checking for poloarity in the case to make the potential clause SAT, if x1', then set x1'=FALSE
+        if(literal > 0) {
+            tracking_assigments[var] = ASSIGN_TRUE; // Assign true to the variable
+        } else {
+            tracking_assigments[var] = ASSIGN_FALSE; // Assign false to the variable
+        }
+        trail_assigments.push_back(literal); // Add the assigned literal to the trail for backtracking purposes
+    }
+
+
+    //remove the last entry in the trail and unassign the corresponding variable
+    void unassign_literal(int literal) {
+        int var = std::abs(trail_assigments.back()); // Get the last assigned literal from the trail
+        trail_assigments.pop_back(); // Remove the last assigned literal from the trail
+        tracking_assigments[var] = UNASSIGNED; // Unassign the variable
+    }
+
+    int get_literal_assignment(int literal) {
+        int var = std::abs(literal);
+        return tracking_assigments[var]; // Return the current assignment of the variable
+    }
+
+};
+
+
+
+
 
 
 /**
