@@ -147,19 +147,28 @@ struct All_Watched_Literals {
  * For example, if the literal is 2, then the function will return a reference to calueses are on watches_pos[2].
  */
 std::vector<int>& get_watch_list(All_Watched_Literals& awl, int literal) {
-    if (literal > 0) {
+    if (literal > 0) 
+    {
         return awl.watches_pos[literal];
-    } else {
+    } 
+    else
+    {
         return awl.watches_neg[std::abs(literal)]; //negative literal, so we take the absolute value to index into watches_neg
     }
 }
 
 /**
- * Const overload for read-only access during propagation.
+ * 
  */
 const std::vector<int>& get_watch_list(const All_Watched_Literals& awl, int literal) {
-    return (literal > 0) ? awl.watches_pos[literal]
-                         : awl.watches_neg[std::abs(literal)];
+    if (literal > 0) 
+    {
+        return awl.watches_pos[literal];
+    } 
+    else
+    {
+        return awl.watches_neg[std::abs(literal)]; //negative literal, so we take the absolute value to index into watches_neg
+    }
 }
 
 /**
@@ -172,17 +181,19 @@ bool initialize_watched_literals(const CNF_Formula& formula, All_Watched_Literal
     // Size (num_vars + 1) so variable v maps directly to index v (index 0 unused).
     awl.watches_pos.assign(formula.num_vars + 1, {});
     awl.watches_neg.assign(formula.num_vars + 1, {});
-    awl.clause_watch_positions.reserve(formula.clauses.size());
+    awl.clause_watch_positions.reserve(formula.clauses.size()); //reserve space for the watch positions of each clause to avoid unnecessary reallocations
 
-    for (size_t i = 0; i < formula.clauses.size(); ++i) {
-        const auto& lits = formula.clauses[i].literals;
+    for (size_t i = 0; i < formula.clauses.size(); ++i) 
+    {
+        const std::vector<int>& lits = formula.clauses[i].literals; // const to avoid oopsies
 
         if (lits.empty()) return false;   // trivial UNSAT
 
-        if (lits.size() == 1) {
+        if (lits.size() == 1) 
+        {
             // Unit clause: no watches needed for this specific case, queue the literal for propagation.
             awl.unit_propagation_queue.push_back(lits[0]);
-            awl.clause_watch_positions.push_back({0, -1});  // sentinel: unit clause
+            awl.clause_watch_positions.push_back({0, -1});  // unit clause
             continue;
         }
 
