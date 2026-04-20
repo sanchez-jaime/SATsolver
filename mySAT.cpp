@@ -24,7 +24,7 @@
 struct Clause 
 {
     std::vector<int> literals;  /* list of lits in a single clause*/
-    bool is_satisfied; /* boolean that represents whether the clause is satisfied or not, initialized to false */
+    bool is_satisfied; /* TBD boolean that represents whether the clause is satisfied or not, initialized to false */
 
 };
 
@@ -40,10 +40,10 @@ struct CNF_Formula
     int num_clauses;           /* number of clauses in the CNF formula */
     std::vector<Clause> clauses; /* vector of clauses in the CNF formula */
 
-    std::vector<int> positive_literal_assignments; /* vector of positive literal assignments. 1 for true, -1 for false, 0 for unassigned */
-    std::vector<int> negative_literal_assignments; /* vector of negative literal assignments. 1 for true, -1 for false, 0 for unassigned */
+    std::vector<int> positive_literal_assignments; /* TBD vector of positive literal assignments. 1 for true, -1 for false, 0 for unassigned */
+    std::vector<int> negative_literal_assignments; /* TBD vector of negative literal assignments. 1 for true, -1 for false, 0 for unassigned */
 
-    std::vector<int> final_literal_assignments; /* vector of final literal assignments. 1 for true, -1 for false, 0 for unassigned */
+    std::vector<int> final_literal_assignments; /* TBD vector of final literal assignments. 1 for true, -1 for false, 0 for unassigned */
 };
 
 /**
@@ -181,8 +181,8 @@ bool initialize_watched_literals(const CNF_Formula& formula, All_Watched_Literal
 
 enum Assignment : int {
     UNASSIGNED      = 0,
-    ASSIGN_TRUE     = 1,
-    ASSIGN_FALSE    = -1
+    ASSIGNED_TRUE     = 1,
+    ASSIGNED_FALSE    = -1
 };
 
 /**
@@ -215,11 +215,11 @@ struct Literal_Assignments {
             }
             //checking for poloarity in the case to make the potential clause SAT, if x1', then setting x1'=FALSE makes the clause SAT, if x1, then setting x1=TRUE makes the clause SAT
             else if(literal > 0) {
-                tracking_assignments[var] = ASSIGN_TRUE; // Assign true to the variable
+                tracking_assignments[var] = ASSIGNED_TRUE; // Assign true to the variable
             } 
             else 
             {
-                tracking_assignments[var] = ASSIGN_FALSE; // Assign false to the variable
+                tracking_assignments[var] = ASSIGNED_FALSE; // Assign false to the variable
             }
             tracking_trail_assignments.push_back(literal); // Add the assigned literal to the trail for backtracking purposes
         }
@@ -245,6 +245,7 @@ struct Literal_Assignments {
     /**
      * Getter function to return the assignment of the literal, regardless of polarity
      * @param literal: the literal for which to get the assignment
+     * @return the assignment of the literal, taking into account the polarity. 
      */
     int get_literal_assignment(int literal) const {
         if(literal == 0) 
@@ -257,6 +258,7 @@ struct Literal_Assignments {
         int assignment = tracking_assignments[var];   
 
         // return based on the polarity of the literal. Logic based on assignage in assign_literal() 
+        /* the following just returns the true state of var*/
         if(literal > 0)
         {
             return assignment;
@@ -290,27 +292,50 @@ struct Literal_Assignments {
 
 /**
  * Function that perfoms boolean constraint propagation (BCP) with the two watched literals heuristic. 
- * 
+ * @return returns bool FALSE if conflit, otherwise TRUE
  */
-bool bcp(CNF_Formula& formula) {
+bool bcp(CNF_Formula& formula, All_Watched_Literals& awl, Literal_Assignments& literal_assignments){
     
-    for(int i = 0; i < formula.clauses.size(); i++)
+    /* loop to look and apply any queued up literal assignments*/
+    while(!awl.unit_propagation_queue.empty()) 
     {
+        int front_literal = awl.unit_propagation_queue.front(); // Get the next literal to propagate
+        awl.unit_propagation_queue.pop_front(); // Remove it from the queue
+
+        /* has the front literal been assigned? */
+        int front_literal_assignment = literal_assignments.get_literal_assignment(front_literal);
+        if(front_literal_assignment != UNASSIGNED)
+        {
+            if(front_literal_assignment == ASSIGNED_TRUE) 
+            {
+                /* ignore, this literal has been assgined as true */
+                continue;
+            }
+            if (front_literal_assignment == ASSIGNED_FALSE) 
+            {
+                /* clear queue for bactracking */
+                awl.unit_propagation_queue.clear(); 
+                return false;
+            }
+        }
         
+
+
+
+
+
+
+
     }
-    
-
-
-    return false; // Placeholder return value
 }
 
 
-bool dpll(CNF_Formula& formula) {
+bool dpll(CNF_Formula& formula, All_Watched_Literals& awl, Literal_Assignments& literal_assignments) {
     // Placeholder for the DPLL algorithm implementation
     // This function should return true if the formula is satisfiable, and false otherwise.
     std::cout << "Doing SAT stuff\n";
     /* base case, look for for unit clauses*/
-    if(bcp(formula)){
+    if(bcp(formula, awl, literal_assignments)){
         return true; // all clauses are satisfied
     }
 
@@ -381,7 +406,11 @@ int main(int argc, char* argv[]) {
 
     //==============Run SAT Solver algorithm================
     /* run dpll*/
-    bool is_satisfiable = dpll(my_Formula);
+    Literal_Assignments literal_assignments(my_Formula.num_vars); // call contructor for literal assignments
+
+    
+    bool is_satisfiable = dpll(my_Formula, watched_literals, literal_assignments); // Placeholder for the actual DPLL call, currently just runs BCP to demonstrate the structure of the code. Should be updated to run the full DPLL algorithm once implemented.
+    //bool is_satisfiable = dpll(my_Formula);
 
 
 
