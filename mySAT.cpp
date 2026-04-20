@@ -179,7 +179,7 @@ bool initialize_watched_literals(const CNF_Formula& formula, All_Watched_Literal
 }
 
 
-enum Asignment : int {
+enum Assignment : int {
     UNASSIGNED      = 0,
     ASSIGN_TRUE     = 1,
     ASSIGN_FALSE    = -1
@@ -190,7 +190,7 @@ enum Asignment : int {
  * Using struct for simplicity, can be refactored to a class if needed in the future
  */
 struct Literal_Assignments {
-    std::vector<Asignment> tracking_assignments; //vector used to track literal assignments through propagation and backtracking
+    std::vector<Assignment> tracking_assignments; //vector used to track literal assignments through propagation and backtracking
     std::vector<int> tracking_trail_assignments; //vector for the trail of literals, used for backtracking
 
     /**
@@ -208,8 +208,13 @@ struct Literal_Assignments {
         {
             int var = std::abs(literal);
 
+            // Only assign if the variable is currently unassigned.
+            if(tracking_assignments[var] != UNASSIGNED) 
+            {
+                std::cout << __func__ << "() ERROR: Attempting to assign a literal that is already assigned \n";
+            }
             //checking for poloarity in the case to make the potential clause SAT, if x1', then setting x1'=FALSE makes the clause SAT, if x1, then setting x1=TRUE makes the clause SAT
-            if(literal > 0) {
+            else if(literal > 0) {
                 tracking_assignments[var] = ASSIGN_TRUE; // Assign true to the variable
             } 
             else 
@@ -272,7 +277,7 @@ struct Literal_Assignments {
     /**
      * Getter function to return the final literal assigment from the tracking assignments vector, taking into account the polarity of the literal
      */
-    const std::vector<Asignment>& get_final_literal_assignment() const {
+    const std::vector<Assignment>& get_final_literal_assignment() const {
         //TODO update to align with final prinout formart
         return tracking_assignments; // Return the current state of all variable assignments, which can be used to determine the final literal assignments after the solving process is complete
     }
