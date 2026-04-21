@@ -180,9 +180,9 @@ bool initialize_watched_literals(const CNF_Formula& formula, All_Watched_Literal
 
 
 enum Assignment : int {
-    UNASSIGNED      = 0,
-    ASSIGNED_TRUE     = 1,
-    ASSIGNED_FALSE    = -1
+    UNASSIGNED      =   0,
+    ASSIGNED_TRUE   =   1,
+    ASSIGNED_FALSE  =   -1
 };
 
 /**
@@ -286,10 +286,6 @@ struct Literal_Assignments {
 };
 
 
-
-
-
-
 /**
  * Function that perfoms boolean constraint propagation (BCP) with the two watched literals heuristic. 
  * @return returns bool FALSE if conflit, otherwise TRUE
@@ -319,10 +315,25 @@ bool bcp(CNF_Formula& formula, All_Watched_Literals& awl, Literal_Assignments& l
             }
         }
         
+        /*assign queued literal*/
+        literal_assignments.assign_literal(front_literal_assignment);
+
+        /* Maint invariants (update watched list to see which literal needs to be moved)*/
+        /*opsite literal polarity */
+        int opposite_front_literal = -(front_literal);
+
+        std::vector<int>& watched_list = get_watch_list(awl, opposite_front_literal);
+        /*loop through all the caluses in which the opposite assigned variable is assigned to to replace it in the watched list*/
+        for(int i = 0; watched_list.size() > i; i++)
+        {
+            int watched_clause_number = watched_list[i];
+
+            std::vector<int>& literals_in_clause = formula.clauses[watched_clause_number].literals; //get all the litereals in a clause that contained the opposite queued up literal
+
+            WatchPositions& first_second_positions = awl.clause_watch_positions[watched_clause_number]; //not const since I need to update pointers
 
 
-
-
+        }
 
 
 
