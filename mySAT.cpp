@@ -332,6 +332,26 @@ bool bcp(CNF_Formula& formula, All_Watched_Literals& awl, Literal_Assignments& l
 
             WatchPositions& first_second_positions = awl.clause_watch_positions[watched_clause_number]; //not const since I need to update pointers
 
+            int right_position = 0;
+            int second_watched_position = 0;
+
+            if(literals_in_clause[first_second_positions.first] == opposite_front_literal)
+            {
+                /* target index is the literal*/
+                right_position = first_second_positions.first;
+                second_watched_position = first_second_positions.second;
+            }
+            else if (literals_in_clause[first_second_positions.second] == opposite_front_literal)
+            {
+                /* target index is the literal*/
+                right_position = first_second_positions.second;
+                second_watched_position = first_second_positions.first;
+            }
+
+            int litereal_of_second_watched_position = literals_in_clause[second_watched_position];
+
+
+            /* target literal 'opposite_front_literal', second literal in watched list 'litereal_of_second_watched_position' */
 
         }
 
