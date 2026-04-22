@@ -291,7 +291,7 @@ struct Literal_Assignments {
  * Function that perfoms boolean constraint propagation (BCP) with the two watched literals heuristic. 
  * @return returns bool FALSE if conflit, otherwise TRUE
  */
-bool bcp(CNF_Formula& formula, All_Watched_Literals& awl, Literal_Assignments& literal_assignments){
+bool BCP(CNF_Formula& formula, All_Watched_Literals& awl, Literal_Assignments& literal_assignments){
     
     /* loop to look and apply any queued up literal assignments*/
     while(!awl.unit_propagation_queue.empty()) 
@@ -320,8 +320,7 @@ bool bcp(CNF_Formula& formula, All_Watched_Literals& awl, Literal_Assignments& l
         literal_assignments.assign_literal(front_literal);
 
         /* Maintain invariants (update watched list to see which literal needs to be moved)*/
-        /*opsite literal polarity */
-        int opposite_front_literal = -(front_literal);
+        int opposite_front_literal = -(front_literal); //opsite literal polarity
 
         std::vector<int>& watched_list = get_watch_list(awl, opposite_front_literal);
         /*loop through all the clauses in which the opposite assigned variable is assigned to to replace it in the watched list*/
@@ -410,34 +409,49 @@ bool bcp(CNF_Formula& formula, All_Watched_Literals& awl, Literal_Assignments& l
                     /*forced decision, new unit clause and add to queue*/
                     awl.unit_propagation_queue.push_back(litereal_of_second_watched_position);
                 }
-                else
+                /* if there are no more literals to watch, and the other watched literal is assigned false, then we have a conflict, so we can return false*/
+                else if(second_watched_literal_assignment == ASSIGNED_FALSE)
                 {
-                    /* if there are no more literals to watch, and the other watched literal is assigned false, then we have a conflict, so we can return false*/
-                    if(second_watched_literal_assignment == ASSIGNED_FALSE)
-                    {
-                        /* clear queue for bactracking */
-                        awl.unit_propagation_queue.clear(); 
-                        return false;
-                    }
+                    /* clear queue for bactracking */
+                    awl.unit_propagation_queue.clear(); 
+                    return false;
                 }
             }
         }
 
     }
-    /*bcp completed without conflict*/
+    /*BCP completed without conflict*/
     return true;
 }
 
+/**
+ * Function that performs basic DPLL branching
+ * Without Branching Heuristics
+ */
+bool basic_brancher(CNF_Formula& formula, Literal_Assignments& literal_assignments){
 
-bool dpll(CNF_Formula& formula, All_Watched_Literals& awl, Literal_Assignments& literal_assignments) {
-    // Placeholder for the DPLL algorithm implementation
-    // This function should return true if the formula is satisfiable, and false otherwise.
-    /* base case, look for for unit clauses*/
-    if(bcp(formula, awl, literal_assignments)){
+}
+
+bool DLIS(){
+    //TODO implement branchinf heuristics
+}
+
+
+bool DPLL(CNF_Formula& formula, All_Watched_Literals& awl, Literal_Assignments& literal_assignments, bool DLIS_ENABLED){
+
+    /* PRECONDITION: base case, look for for unit clauses*/
+    if(BCP(formula, awl, literal_assignments)){
         return true; // all clauses are satisfied
     }
 
+    /*Pick literal to branch to*/
+    //TODO implement DLIS heuristic for picking literal to branch on, currently just picks the first unassigned literal it finds
+    if(!DLIS_ENABLED){
+        basic_brancher(formula, literal_assignments);
+    }
+    else{
 
+    }
 
     return false; // Placeholder return value
 }
@@ -465,7 +479,8 @@ void print_assigments(const std::vector<Assignment>& final_literal_assignments) 
         }
         else
         {
-            std::cout << __func__ << "() ERROR: Outputting failed, variable found to be UNSAT \n";
+            std::cout << __func__ << "() ERROR: Outputting failed, variable (" << i << ") found to be UNSAT \n";
+            
         }
     }
     output.pop_back(); // Remove the trailing space
@@ -525,8 +540,9 @@ int main(int argc, char* argv[]) {
     /* run dpll*/
     Literal_Assignments literal_assignments(my_Formula.num_vars); // call contructor for literal assignments
 
-    
-    bool is_satisfiable = dpll(my_Formula, watched_literals, literal_assignments); // Placeholder for the actual DPLL call, currently just runs BCP to demonstrate the structure of the code. Should be updated to run the full DPLL algorithm once implemented.
+    bool DLIS_ENABLED = false; // Placeholder for enabling/disabling DLIS heuristic, currently not implemented
+
+    bool is_satisfiable = DPLL(my_Formula, watched_literals, literal_assignments, DLIS_ENABLED); // Placeholder for the actual DPLL call, currently just runs BCP to demonstrate the structure of the code. Should be updated to run the full DPLL algorithm once implemented.
     //bool is_satisfiable = dpll(my_Formula);
 
 
