@@ -286,6 +286,7 @@ struct Literal_Assignments {
 };
 
 
+
 /**
  * Function that perfoms boolean constraint propagation (BCP) with the two watched literals heuristic. 
  * @return returns bool FALSE if conflit, otherwise TRUE
@@ -316,14 +317,14 @@ bool bcp(CNF_Formula& formula, All_Watched_Literals& awl, Literal_Assignments& l
         }
         
         /*assign queued literal*/
-        literal_assignments.assign_literal(front_literal_assignment);
+        literal_assignments.assign_literal(front_literal);
 
-        /* Maint invariants (update watched list to see which literal needs to be moved)*/
+        /* Maintain invariants (update watched list to see which literal needs to be moved)*/
         /*opsite literal polarity */
         int opposite_front_literal = -(front_literal);
 
         std::vector<int>& watched_list = get_watch_list(awl, opposite_front_literal);
-        /*loop through all the caluses in which the opposite assigned variable is assigned to to replace it in the watched list*/
+        /*loop through all the clauses in which the opposite assigned variable is assigned to to replace it in the watched list*/
         for(int i = 0; watched_list.size() > i; i++)
         {
             int watched_clause_number = watched_list[i];
@@ -348,23 +349,89 @@ bool bcp(CNF_Formula& formula, All_Watched_Literals& awl, Literal_Assignments& l
                 second_watched_position = first_second_positions.first;
             }
 
-            int litereal_of_second_watched_position = literals_in_clause[second_watched_position];
-
+            int litereal_of_second_watched_position = literals_in_clause[second_watched_position]; // get the 'other' watched literal
 
             /* target literal 'opposite_front_literal', second literal in watched list 'litereal_of_second_watched_position' */
+            if(literal_assignments.get_literal_assignment(litereal_of_second_watched_position) == ASSIGNED_TRUE)
+            {
+                /* if the other watched literal already satifuies the clause, igore the current literal target*/
+                continue; //move on
+            }
+            bool updated_watch_list = false;
 
+            /* update watch list, loop through all the literals in a clause*/
+            for(int j = 0; j < literals_in_clause.size(); j++)
+            // a    b   c   d
+            // 0    1   2   3
+            // '*' *
+            {
+                /*find next suitable literal index to watch*/
+                if(first_second_positions.first == j || first_second_positions.second == j)
+                {
+                    continue;
+                }
+                int new_literal_replacement_assigment = literal_assignments.get_literal_assignment(literals_in_clause[j]);
+
+                if(new_literal_replacement_assigment == ASSIGNED_FALSE)
+                {
+                    /* Skip since new replacement already assgined*/
+                    continue; 
+                }
+                
+                /*update pointers and flip */
+                if(right_position == first_second_positions.first)
+                {
+                    first_second_positions.first = j; 
+                    
+                }
+                else if (right_position == first_second_positions.second)
+                {
+                    first_second_positions.second = j; 
+                }
+                
+                /* leverage vector's pop_back() and back()*/
+                watched_list[i] = watched_list.back(); //order doesnt matter as long as get go through all of them
+                watched_list.pop_back();
+                updated_watch_list = true; 
+                //get_watch_list(awl, watched_list[j]).push_back(watched_clause_number);
+
+                get_watch_list(awl, literals_in_clause[j]).push_back(watched_clause_number);
+                break;
+            }
+            if(updated_watch_list)
+            {
+                i--; //decrement i since we just swapped the current index with the last index and popped the last index, so we need to check the current index again since it now contains a new clause number after the swap
+                continue; //move on to the next clause in the watched list since we successfully updated the watch list for this clause
+            }
+            else{
+                int second_watched_literal_assignment = literal_assignments.get_literal_assignment(litereal_of_second_watched_position);
+                if(second_watched_literal_assignment == UNASSIGNED)
+                {
+                    /*forced decision, new unit clause and add to queue*/
+                    awl.unit_propagation_queue.push_back(litereal_of_second_watched_position);
+                }
+                else
+                {
+                    /* if there are no more literals to watch, and the other watched literal is assigned false, then we have a conflict, so we can return false*/
+                    if(second_watched_literal_assignment == ASSIGNED_FALSE)
+                    {
+                        /* clear queue for bactracking */
+                        awl.unit_propagation_queue.clear(); 
+                        return false;
+                    }
+                }
+            }
         }
 
-
-
     }
+    /*bcp completed without conflict*/
+    return true;
 }
 
 
 bool dpll(CNF_Formula& formula, All_Watched_Literals& awl, Literal_Assignments& literal_assignments) {
     // Placeholder for the DPLL algorithm implementation
     // This function should return true if the formula is satisfiable, and false otherwise.
-    std::cout << "Doing SAT stuff\n";
     /* base case, look for for unit clauses*/
     if(bcp(formula, awl, literal_assignments)){
         return true; // all clauses are satisfied
@@ -375,16 +442,35 @@ bool dpll(CNF_Formula& formula, All_Watched_Literals& awl, Literal_Assignments& 
     return false; // Placeholder return value
 }
 
+/**
+ * Funtion to print assingments using project output format
+ * RESULT:SAT
+ * ASSIGNMENT:1=1 2=0 3=1 … 
+ */
+void print_assigments(const std::vector<Assignment>& final_literal_assignments) {
+    // Placeholder for the function to print the final literal assignments in the required format.
+    std::cout << "RESULT:SAT\n";
+    std::string output = "ASSIGNMENT:";
 
+    for(int i = 1; i < final_literal_assignments.size(); i++) // Start from 1 since index 0 is unused
+    {
 
-
-
-
-
-
-
-
-
+        if(final_literal_assignments[i] == ASSIGNED_TRUE) 
+        {
+            output += std::to_string(i) + "=1 "; // "variable=1 "
+        }
+        else if (final_literal_assignments[i] == ASSIGNED_FALSE) 
+        {
+            output += std::to_string(i) + "=0 "; // "variable=0 "
+        }
+        else
+        {
+            std::cout << __func__ << "() ERROR: Outputting failed, variable found to be UNSAT \n";
+        }
+    }
+    output.pop_back(); // Remove the trailing space
+    std::cout << output << "\n";
+}
 
 /**
  * main function
@@ -446,12 +532,14 @@ int main(int argc, char* argv[]) {
 
 
     //==============Print Output================
-    if (is_satisfiable) {
-        std::cout << "RESULT:SAT\n";
-        //TODO print litral assignments
-    } else {
+    if (is_satisfiable) 
+    {
+        print_assigments(literal_assignments.get_final_literal_assignment()); //TODO update to align with final prinout formart
+    }
+    else
+    {
         std::cout << "RESULT:UNSAT\n";
     }
 
-    return 1;
+    return 0;
 }
