@@ -17,6 +17,8 @@
 #include <deque>
 //#include <map>
 
+#define DLSI_INHIBITED true
+
 /**
  * Structure that represents a clause in the CNF formula. It contains a 
  * vector of interegers that represent the literals in the clause. 
@@ -112,6 +114,13 @@ struct All_Watched_Literals {
     // Literals forced true/false by unit clauses, awaiting propagation.
     // Stored as signed literals (positive means assign true, negative means assign false).
     std::deque<int> unit_propagation_queue;
+
+    /* Helper function to clear the unit propagation queue, used during backtracking to reset the state of the queue */
+    void clear_unit_propagation_queue(){
+        unit_propagation_queue.clear();
+        return;
+    }
+
 };
 
 /**
@@ -441,7 +450,6 @@ int basic_brancher(CNF_Formula& formula, Literal_Assignments& literal_assignment
         return 0; //needs to be zero, as that is the only unused number
     }
 
-
 }
 
 int DLIS(CNF_Formula& formula, Literal_Assignments& literal_assignments){
@@ -449,8 +457,18 @@ int DLIS(CNF_Formula& formula, Literal_Assignments& literal_assignments){
     return 0;
 }
 
+/**
+ * Backtraking function to remove multiple assigments, may be overkill if no additional hueristics are implemented
+ */
+void backtrack(Literal_Assignments& literal_assignments, int size_status) {
+    for(int i = literal_assignments.get_trail_assignments_size(); i > size_status; i--){
+        literal_assignments.unassign_last_literal();
+    }
+    return;
+}
 
-bool DPLL(CNF_Formula& formula, All_Watched_Literals& awl, Literal_Assignments& literal_assignments, bool DLIS_ENABLED){
+
+bool DPLL(CNF_Formula& formula, All_Watched_Literals& awl, Literal_Assignments& literal_assignments){
 
     /* PRECONDITION: base case, look for for unit clauses */
     if(BCP(formula, awl, literal_assignments) == false){
@@ -460,34 +478,35 @@ bool DPLL(CNF_Formula& formula, All_Watched_Literals& awl, Literal_Assignments& 
     /*Branching Setup: Pick literal to branch to */
     //TODO implement DLIS heuristic for picking literal to branch on, currently just picks the first unassigned literal it finds
     int new_branching_literal;
-    if(DLIS_ENABLED == false){
+    if(DLSI_INHIBITED){
         new_branching_literal = basic_brancher(formula, literal_assignments);
     }
     else{
         new_branching_literal = DLIS(formula, literal_assignments);
     }
 
-
-    
-
-
-
     int size_status = (int)literal_assignments.get_trail_assignments_size();
 
     /*Recrusion 1, branch based on new assignment*/
-    awl.unit_propagation_queue.push_back(new_branching_literal);
+    awl.unit_propagation_queue.push_back(new_branching_literal); // add new chosen literal to queue and do BCP
+    if(DPLL(formula, awl, literal_assignments) == true){
+        return true; //SAT found!
+    }
+    /**/
+    backtrack(literal_assignments, size_status);
+    awl.clear_unit_propagation_queue();
 
 
-    /*Recrusion 1, branch based on new assignment*/
-    awl.unit_propagation_queue.push_back(new_branching_literal);
+    /*Recrusion 2, branch based on new assignment*/
+    awl.unit_propagation_queue.push_back(-new_branching_literal); // add new chosen literal to queue and do BCP
+    if(DPLL(formula, awl, literal_assignments) == true){
+        return true; //SAT found!
+    }
+    /**/
+    backtrack(literal_assignments, size_status);
+    awl.clear_unit_propagation_queue();
 
-
-
-
-
-
-
-    return false; // Placeholder return value
+    return false; // nosolution found in either branch, return false to backtrack further up the search tree
 }
 
 /**
@@ -574,9 +593,7 @@ int main(int argc, char* argv[]) {
     /* run dpll*/
     Literal_Assignments literal_assignments(my_Formula.num_vars); // call contructor for literal assignments
 
-    bool DLIS_ENABLED = false; // Placeholder for enabling/disabling DLIS heuristic, currently not implemented
-
-    bool is_satisfiable = DPLL(my_Formula, watched_literals, literal_assignments, DLIS_ENABLED); // Placeholder for the actual DPLL call, currently just runs BCP to demonstrate the structure of the code. Should be updated to run the full DPLL algorithm once implemented.
+    bool is_satisfiable = DPLL(my_Formula, watched_literals, literal_assignments); // Placeholder for the actual DPLL call, currently just runs BCP to demonstrate the structure of the code. Should be updated to run the full DPLL algorithm once implemented.
     //bool is_satisfiable = dpll(my_Formula);
 
 
