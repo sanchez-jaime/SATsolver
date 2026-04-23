@@ -428,30 +428,64 @@ bool BCP(CNF_Formula& formula, All_Watched_Literals& awl, Literal_Assignments& l
  * Function that performs basic DPLL branching
  * Without Branching Heuristics
  */
-bool basic_brancher(CNF_Formula& formula, Literal_Assignments& literal_assignments){
+int basic_brancher(CNF_Formula& formula, Literal_Assignments& literal_assignments){
+    for(int i = 1; i < formula.num_vars + 1; i++){
+        /*Pick new vairable so long as it has not beed assigned yet*/
+        int temp_new_literal = literal_assignments.tracking_assignments[i];
+        if ((temp_new_literal == ASSIGNED_FALSE) || (temp_new_literal == ASSIGNED_FALSE)){
+            continue; //skip 
+        }
+        else{
+            return i; //found one
+        }
+        return 0; //needs to be zero, as that is the only unused number
+    }
+
 
 }
 
-bool DLIS(){
+int DLIS(CNF_Formula& formula, Literal_Assignments& literal_assignments){
     //TODO implement branchinf heuristics
+    return 0;
 }
 
 
 bool DPLL(CNF_Formula& formula, All_Watched_Literals& awl, Literal_Assignments& literal_assignments, bool DLIS_ENABLED){
 
-    /* PRECONDITION: base case, look for for unit clauses*/
-    if(BCP(formula, awl, literal_assignments)){
-        return true; // all clauses are satisfied
+    /* PRECONDITION: base case, look for for unit clauses */
+    if(BCP(formula, awl, literal_assignments) == false){
+        return false; 
     }
 
-    /*Pick literal to branch to*/
+    /*Branching Setup: Pick literal to branch to */
     //TODO implement DLIS heuristic for picking literal to branch on, currently just picks the first unassigned literal it finds
-    if(!DLIS_ENABLED){
-        basic_brancher(formula, literal_assignments);
+    int new_branching_literal;
+    if(DLIS_ENABLED == false){
+        new_branching_literal = basic_brancher(formula, literal_assignments);
     }
     else{
-
+        new_branching_literal = DLIS(formula, literal_assignments);
     }
+
+
+    
+
+
+
+    int size_status = (int)literal_assignments.get_trail_assignments_size();
+
+    /*Recrusion 1, branch based on new assignment*/
+    awl.unit_propagation_queue.push_back(new_branching_literal);
+
+
+    /*Recrusion 1, branch based on new assignment*/
+    awl.unit_propagation_queue.push_back(new_branching_literal);
+
+
+
+
+
+
 
     return false; // Placeholder return value
 }
