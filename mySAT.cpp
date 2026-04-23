@@ -449,7 +449,7 @@ int basic_brancher(CNF_Formula& formula, Literal_Assignments& literal_assignment
         }
         return 0; //needs to be zero, as that is the only unused number
     }
-
+    return 0;
 }
 
 int DLIS(CNF_Formula& formula, Literal_Assignments& literal_assignments){
