@@ -8,14 +8,11 @@
 
 #include "parser.h"
 
-//#include <algorithm>
-//#include <chrono>
 #include <cstring>
 #include <iostream>
 #include <string>
 #include <vector>
 #include <deque>
-//#include <map>
 
 #define DLSI_INHIBITED true
 
@@ -441,7 +438,7 @@ int basic_brancher(CNF_Formula& formula, Literal_Assignments& literal_assignment
     for(int i = 1; i < formula.num_vars + 1; i++){
         /*Pick new vairable so long as it has not beed assigned yet*/
         int temp_new_literal = literal_assignments.tracking_assignments[i];
-        if ((temp_new_literal == ASSIGNED_FALSE) || (temp_new_literal == ASSIGNED_FALSE)){
+        if ((temp_new_literal == ASSIGNED_TRUE) || (temp_new_literal == ASSIGNED_FALSE)){
             continue; //skip 
         }
         else{
@@ -487,12 +484,17 @@ bool DPLL(CNF_Formula& formula, All_Watched_Literals& awl, Literal_Assignments& 
 
     int size_status = (int)literal_assignments.get_trail_assignments_size();
 
+    /*base case for when no unassigned literals remain*/
+    if(new_branching_literal == 0){
+        return true;
+    }
+
     /*Recrusion 1, branch based on new assignment*/
     awl.unit_propagation_queue.push_back(new_branching_literal); // add new chosen literal to queue and do BCP
     if(DPLL(formula, awl, literal_assignments) == true){
         return true; //SAT found!
     }
-    /**/
+    /* backtrack*/
     backtrack(literal_assignments, size_status);
     awl.clear_unit_propagation_queue();
 
@@ -502,7 +504,7 @@ bool DPLL(CNF_Formula& formula, All_Watched_Literals& awl, Literal_Assignments& 
     if(DPLL(formula, awl, literal_assignments) == true){
         return true; //SAT found!
     }
-    /**/
+    /* backtrack*/
     backtrack(literal_assignments, size_status);
     awl.clear_unit_propagation_queue();
 
