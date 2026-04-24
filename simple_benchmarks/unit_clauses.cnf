@@ -1,0 +1,12 @@
+c Tests unit-clause handling: the two unit clauses should end up in the
+c propagation queue, and only clause 2 (the ternary one) should have watches.
+c After init expect:
+c   clause_watch_positions = [{0,-1}, {0,-1}, {0,1}]
+c   watches_pos[3] = {2}   (clause 2 watches +3 at position 0)
+c   watches_pos[2] = {2}   (clause 2 watches +2 at position 1)
+c   watches_neg = {}       (no negative-literal watches)
+c   unit_propagation_queue = {1, -2}
+p cnf 3 3
+1 0
+-2 0
+3 2 0

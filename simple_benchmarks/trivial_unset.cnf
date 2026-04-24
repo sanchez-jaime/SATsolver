@@ -1,0 +1,10 @@
+c Two contradictory unit clauses. Not caught by the initializer itself
+c (no empty clause), but both literals should land in the propagation queue.
+c After init expect:
+c   unit_propagation_queue = {1, -1}
+c   watches_pos = watches_neg = {}
+c   clause_watch_positions  = [{0,-1}, {0,-1}]
+c   return value: true   (UNSAT will be caught later, during propagation)
+p cnf 1 2
+1 0
+-1 0

@@ -1,6 +1,8 @@
 # Specific executable name (Linux/macOS)
 mySAT
 
+benchmark_logs/
+
 # Windows executables
 *.exe
 
