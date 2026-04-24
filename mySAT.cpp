@@ -532,11 +532,6 @@ void print_assigments(const std::vector<Assignment>& final_literal_assignments) 
         {
             output += std::to_string(i) + "=0 "; // "variable=0 "
         }
-        else
-        {
-            std::cout << __func__ << "() ERROR: Outputting failed, variable (" << i << ") found to be UNSAT \n";
-            
-        }
     }
     output.pop_back(); // Remove the trailing space
     std::cout << output << "\n";
