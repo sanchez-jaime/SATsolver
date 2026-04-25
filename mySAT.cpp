@@ -14,7 +14,7 @@
 #include <vector>
 #include <deque>
 
-#define DLSI_INHIBITED true
+#define DLSI_INHIBITED false
 
 /**
  * Structure that represents a clause in the CNF formula. It contains a 
@@ -430,6 +430,9 @@ bool BCP(CNF_Formula& formula, All_Watched_Literals& awl, Literal_Assignments& l
     return true;
 }
 
+
+
+
 /**
  * Function that performs basic DPLL branching
  * Without Branching Heuristics
@@ -449,9 +452,73 @@ int basic_brancher(CNF_Formula& formula, Literal_Assignments& literal_assignment
     return 0;
 }
 
+struct DLIS_Counter {
+    std::vector<int> positive_count; //vector to count the number of times each unassigned positive literal appears in an unsatisfied clause
+    std::vector<int> negative_count; //vector to count the number of times each unassigned negative literal appears in an unsatisfied clause
+
+     /**
+     * Constructor
+     * @param num_vars: the number of variables in the CNF formula
+     */
+    explicit DLIS_Counter(int num_vars) : positive_count(num_vars + 1, 0), negative_count(num_vars + 1, 0) {} 
+};
+
 int DLIS(CNF_Formula& formula, Literal_Assignments& literal_assignments){
-    //TODO implement branchinf heuristics
-    return 0;
+    //Scan all the unsatisfied clauses
+    //record the number of times each unassigned literal appears in an unsatisfied clause
+    //keep track of the literal with different polarity that appears the most, and return that literal as the new branching literal 
+    DLIS_Counter dlis_counter(formula.num_vars);
+
+    for(int i = 0; i < formula.clauses.size(); i++)
+    {
+        Clause& clause = formula.clauses[i];
+        for(int j = 0; j < clause.literals.size(); j++)
+        {
+            int literal = clause.literals[j];
+            int literal_assignment = literal_assignments.get_literal_assignment(literal);
+
+            if(literal_assignment == ASSIGNED_TRUE)
+            {
+                /* clause is already satisfied, skip to next clause */
+                break;
+            }
+            /* record the number of times each unassigned literal appears in an unsatisfied clause */
+            else if(literal_assignment == UNASSIGNED)
+            {
+                if(literal > 0)
+                {
+                    dlis_counter.positive_count[literal]++;
+                }
+                else
+                {
+                    dlis_counter.negative_count[abs(literal)]++;
+                }
+            }
+        }
+
+    }
+
+    int new_literal = 0;
+    int best_counter = 0;
+
+    for(int i = 1; i < formula.num_vars + 1; i++)
+    {
+        if(literal_assignments.tracking_assignments[i] == UNASSIGNED)
+        {
+            if(dlis_counter.positive_count[i] > best_counter)
+            {
+                best_counter = dlis_counter.positive_count[i];
+                new_literal = i;
+            }
+            else if(dlis_counter.negative_count[i] > best_counter)
+            {
+                best_counter = dlis_counter.positive_count[i];
+                new_literal = -i;
+            }
+            
+        }
+    }
+    return new_literal;
 }
 
 /**
