@@ -512,7 +512,7 @@ int DLIS(CNF_Formula& formula, Literal_Assignments& literal_assignments){
             }
             else if(dlis_counter.negative_count[i] > best_counter)
             {
-                best_counter = dlis_counter.positive_count[i];
+                best_counter = dlis_counter.negative_count[i];
                 new_literal = -i;
             }
             
