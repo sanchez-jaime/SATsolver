@@ -25,6 +25,22 @@ struct Clause
     std::vector<int> literals;  /* list of lits in a single clause*/
     bool is_satisfied; /* TBD boolean that represents whether the clause is satisfied or not, initialized to false */
 
+    /**
+     * Helper function that returns a boolean if the literal in a clause makes the caluse satisfied
+     * @return boolean flag
+     * @param literal_assigments: structure for literal assigments
+     */
+    bool assign_satisfacctions(Literal_Assignments& literal_assigments){
+        for(int i = 0; i < literals.size(); i++)
+        {
+            if(literal_assigments.get_literal_assignment(i) == ASSIGNED_TRUE)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
 };
 
 /**
@@ -463,27 +479,33 @@ struct DLIS_Counter {
     explicit DLIS_Counter(int num_vars) : positive_count(num_vars + 1, 0), negative_count(num_vars + 1, 0) {} 
 };
 
+/**
+ * Function that implements the DLIS branching heuristic to pick the next literal to branch on.
+ * @param formula: the CNF formula for which to pick the next branching literal
+ * @param literal_assignments: the current literal assignments
+ * @return the next literal to branch on, based on the DLIS heuristic
+ */
 int DLIS(CNF_Formula& formula, Literal_Assignments& literal_assignments){
     //Scan all the unsatisfied clauses
     //record the number of times each unassigned literal appears in an unsatisfied clause
     //keep track of the literal with different polarity that appears the most, and return that literal as the new branching literal 
+    int new_literal = 0;
+    int best_counter = 0;
     DLIS_Counter dlis_counter(formula.num_vars);
 
     for(int i = 0; i < formula.clauses.size(); i++)
     {
         Clause& clause = formula.clauses[i];
+        /*find and sip any clase already has a satsfied literal*/
+        if(clause.assign_satisfacctions(literal_assignments)){
+            continue;
+        }
+
         for(int j = 0; j < clause.literals.size(); j++)
         {
             int literal = clause.literals[j];
-            int literal_assignment = literal_assignments.get_literal_assignment(literal);
-
-            if(literal_assignment == ASSIGNED_TRUE)
-            {
-                /* clause is already satisfied, skip to next clause */
-                break;
-            }
             /* record the number of times each unassigned literal appears in an unsatisfied clause */
-            else if(literal_assignment == UNASSIGNED)
+            if(literal_assignments.get_literal_assignment(literal) == UNASSIGNED)
             {
                 if(literal > 0)
                 {
@@ -491,26 +513,25 @@ int DLIS(CNF_Formula& formula, Literal_Assignments& literal_assignments){
                 }
                 else
                 {
-                    dlis_counter.negative_count[abs(literal)]++;
+                    dlis_counter.negative_count[std::abs(literal)]++;
                 }
             }
         }
-
     }
 
-    int new_literal = 0;
-    int best_counter = 0;
-
-    for(int i = 1; i < formula.num_vars + 1; i++)
+    /*find the new best literal to pick, complemented or not*/
+    for(int i = 1; i <= formula.num_vars; i++)
     {
         if(literal_assignments.tracking_assignments[i] == UNASSIGNED)
         {
+            /*compare againts both counters*/
             if(dlis_counter.positive_count[i] > best_counter)
             {
                 best_counter = dlis_counter.positive_count[i];
                 new_literal = i;
             }
-            else if(dlis_counter.negative_count[i] > best_counter)
+            
+            if(dlis_counter.negative_count[i] > best_counter)
             {
                 best_counter = dlis_counter.negative_count[i];
                 new_literal = -i;
