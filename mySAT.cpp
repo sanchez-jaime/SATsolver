@@ -1,9 +1,11 @@
 /**
  * mySAT.cpp
  * 
+ * DPLL SAT Solver with Two Watched Literals and DLIS Branching Heuristic
  * 
- * ECE 51216
  * Created by Jaime Sanchez
+ * May 7th, 2026
+ * ECE 51216
  */
 
 #include "parser.h"
@@ -17,6 +19,9 @@
 #define DLSI_INHIBITED false
 
 
+/**
+ * Enum to represent the assignment state of a variable.
+ */
 enum Assignment : int {
     UNASSIGNED      =   0,
     ASSIGNED_TRUE   =   1,
