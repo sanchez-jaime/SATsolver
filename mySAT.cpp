@@ -17,6 +17,113 @@
 #define DLSI_INHIBITED false
 
 /**
+ * Structure to hold literal assignments during the solving process.
+ * Using struct for simplicity, can be refactored to a class if needed in the future
+ */
+struct Literal_Assignments {
+    std::vector<Assignment> tracking_assignments; //vector used to track literal assignments through propagation and backtracking
+    std::vector<int> tracking_trail_assignments; //vector for the trail of literals, used for backtracking
+
+    /**
+     * Constructor
+     * @param num_vars: the number of variables in the CNF formula
+     */
+    explicit Literal_Assignments(int num_vars) : tracking_assignments(num_vars + 1, UNASSIGNED) {}
+
+    /**
+     * Helper function to assign a literal and update the tracking and trail vectors
+     * @param literal: the literal to be assigned
+     */
+    void assign_literal(int literal) {
+        if(literal != 0) 
+        {
+            int var = std::abs(literal);
+
+            // Only assign if the variable is currently unassigned.
+            if(tracking_assignments[var] != UNASSIGNED) 
+            {
+                std::cout << __func__ << "() ERROR: Attempting to assign a literal that is already assigned \n";
+            }
+            //checking for poloarity in the case to make the potential clause SAT, if x1', then setting x1'=FALSE makes the clause SAT, if x1, then setting x1=TRUE makes the clause SAT
+            else if(literal > 0) {
+                tracking_assignments[var] = ASSIGNED_TRUE; // Assign true to the variable
+            } 
+            else 
+            {
+                tracking_assignments[var] = ASSIGNED_FALSE; // Assign false to the variable
+            }
+            tracking_trail_assignments.push_back(literal); // Add the assigned literal to the trail for backtracking purposes
+        }
+        else{
+            std::cout << __func__ << "() ERROR: Attempting to assign an invalid literal (0) \n";
+        }  
+    }
+
+    /**
+     * Helper function to remove the last entry in the trail and unassign the corresponding variable
+     */
+    void unassign_last_literal() {
+        if(tracking_trail_assignments.empty()) 
+        {
+            std::cout << __func__ << "() ERROR: Attempting to unassign from an empty trail \n";
+            return;
+        }
+        int var = std::abs(tracking_trail_assignments.back()); // Get the last assigned literal from the trail
+        tracking_trail_assignments.pop_back(); // Remove the last assigned literal from the trail
+        tracking_assignments[var] = UNASSIGNED; // Unassign the variable
+    }   
+
+    /**
+     * Getter function to return the assignment of the literal, regardless of polarity
+     * @param literal: the literal for which to get the assignment
+     * @return the assignment of the literal, taking into account the polarity. 
+     */
+    int get_literal_assignment(int literal) const {
+        if(literal == 0) 
+        {
+            std::cout << __func__ << "() ERROR: Attempting to get assignment for an invalid literal (0) \n";
+
+            return 0; // Not a valid literal
+        }
+        int var = std::abs(literal);
+        int assignment = tracking_assignments[var];   
+
+        // return based on the polarity of the literal. Logic based on assignage in assign_literal() 
+        /* the following just returns the true state of var*/
+        if(literal > 0)
+        {
+            return assignment;
+        }
+        else
+        {
+            return -assignment;
+        }
+    }
+
+    /**
+     * Getter function to return the size of tracking_trail_assignments vector
+     */
+    size_t get_trail_assignments_size() const {
+        return tracking_trail_assignments.size(); // Return the size of the trail, which indicates how many literals have been assigned
+    }
+
+    /**
+     * Getter function to return the final literal assigment from the tracking assignments vector, taking into account the polarity of the literal
+     */
+    const std::vector<Assignment>& get_final_literal_assignment() const {
+        //TODO update to align with final prinout formart
+        return tracking_assignments; // Return the current state of all variable assignments, which can be used to determine the final literal assignments after the solving process is complete
+    }
+};
+
+
+enum Assignment : int {
+    UNASSIGNED      =   0,
+    ASSIGNED_TRUE   =   1,
+    ASSIGNED_FALSE  =   -1
+};
+
+/**
  * Structure that represents a clause in the CNF formula. It contains a 
  * vector of interegers that represent the literals in the clause. 
  */
@@ -33,7 +140,7 @@ struct Clause
     bool assign_satisfacctions(Literal_Assignments& literal_assigments){
         for(int i = 0; i < literals.size(); i++)
         {
-            if(literal_assigments.get_literal_assignment(i) == ASSIGNED_TRUE)
+            if(literal_assigments.get_literal_assignment(literals[i]) == ASSIGNED_TRUE)
             {
                 return true;
             }
@@ -199,113 +306,6 @@ bool initialize_watched_literals(const CNF_Formula& formula, All_Watched_Literal
     }
     return true;
 }
-
-
-enum Assignment : int {
-    UNASSIGNED      =   0,
-    ASSIGNED_TRUE   =   1,
-    ASSIGNED_FALSE  =   -1
-};
-
-/**
- * Structure to hold literal assignments during the solving process.
- * Using struct for simplicity, can be refactored to a class if needed in the future
- */
-struct Literal_Assignments {
-    std::vector<Assignment> tracking_assignments; //vector used to track literal assignments through propagation and backtracking
-    std::vector<int> tracking_trail_assignments; //vector for the trail of literals, used for backtracking
-
-    /**
-     * Constructor
-     * @param num_vars: the number of variables in the CNF formula
-     */
-    explicit Literal_Assignments(int num_vars) : tracking_assignments(num_vars + 1, UNASSIGNED) {}
-
-    /**
-     * Helper function to assign a literal and update the tracking and trail vectors
-     * @param literal: the literal to be assigned
-     */
-    void assign_literal(int literal) {
-        if(literal != 0) 
-        {
-            int var = std::abs(literal);
-
-            // Only assign if the variable is currently unassigned.
-            if(tracking_assignments[var] != UNASSIGNED) 
-            {
-                std::cout << __func__ << "() ERROR: Attempting to assign a literal that is already assigned \n";
-            }
-            //checking for poloarity in the case to make the potential clause SAT, if x1', then setting x1'=FALSE makes the clause SAT, if x1, then setting x1=TRUE makes the clause SAT
-            else if(literal > 0) {
-                tracking_assignments[var] = ASSIGNED_TRUE; // Assign true to the variable
-            } 
-            else 
-            {
-                tracking_assignments[var] = ASSIGNED_FALSE; // Assign false to the variable
-            }
-            tracking_trail_assignments.push_back(literal); // Add the assigned literal to the trail for backtracking purposes
-        }
-        else{
-            std::cout << __func__ << "() ERROR: Attempting to assign an invalid literal (0) \n";
-        }  
-    }
-
-    /**
-     * Helper function to remove the last entry in the trail and unassign the corresponding variable
-     */
-    void unassign_last_literal() {
-        if(tracking_trail_assignments.empty()) 
-        {
-            std::cout << __func__ << "() ERROR: Attempting to unassign from an empty trail \n";
-            return;
-        }
-        int var = std::abs(tracking_trail_assignments.back()); // Get the last assigned literal from the trail
-        tracking_trail_assignments.pop_back(); // Remove the last assigned literal from the trail
-        tracking_assignments[var] = UNASSIGNED; // Unassign the variable
-    }   
-
-    /**
-     * Getter function to return the assignment of the literal, regardless of polarity
-     * @param literal: the literal for which to get the assignment
-     * @return the assignment of the literal, taking into account the polarity. 
-     */
-    int get_literal_assignment(int literal) const {
-        if(literal == 0) 
-        {
-            std::cout << __func__ << "() ERROR: Attempting to get assignment for an invalid literal (0) \n";
-
-            return 0; // Not a valid literal
-        }
-        int var = std::abs(literal);
-        int assignment = tracking_assignments[var];   
-
-        // return based on the polarity of the literal. Logic based on assignage in assign_literal() 
-        /* the following just returns the true state of var*/
-        if(literal > 0)
-        {
-            return assignment;
-        }
-        else
-        {
-            return -assignment;
-        }
-    }
-
-    /**
-     * Getter function to return the size of tracking_trail_assignments vector
-     */
-    size_t get_trail_assignments_size() const {
-        return tracking_trail_assignments.size(); // Return the size of the trail, which indicates how many literals have been assigned
-    }
-
-    /**
-     * Getter function to return the final literal assigment from the tracking assignments vector, taking into account the polarity of the literal
-     */
-    const std::vector<Assignment>& get_final_literal_assignment() const {
-        //TODO update to align with final prinout formart
-        return tracking_assignments; // Return the current state of all variable assignments, which can be used to determine the final literal assignments after the solving process is complete
-    }
-};
 
 
 
