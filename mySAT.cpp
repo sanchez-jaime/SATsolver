@@ -16,6 +16,14 @@
 
 #define DLSI_INHIBITED false
 
+
+enum Assignment : int {
+    UNASSIGNED      =   0,
+    ASSIGNED_TRUE   =   1,
+    ASSIGNED_FALSE  =   -1
+};
+
+
 /**
  * Structure to hold literal assignments during the solving process.
  * Using struct for simplicity, can be refactored to a class if needed in the future
@@ -117,11 +125,6 @@ struct Literal_Assignments {
 };
 
 
-enum Assignment : int {
-    UNASSIGNED      =   0,
-    ASSIGNED_TRUE   =   1,
-    ASSIGNED_FALSE  =   -1
-};
 
 /**
  * Structure that represents a clause in the CNF formula. It contains a 
