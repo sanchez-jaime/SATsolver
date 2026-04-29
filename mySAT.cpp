@@ -732,7 +732,7 @@ int main(int argc, char* argv[]) {
     /*==============Print Output================*/
     if (is_satisfiable) 
     {
-        print_assigments(literal_assignments.get_final_literal_assignment()); //TODO update to align with final prinout formart
+        print_assigments(literal_assignments.get_final_literal_assignment());
     }
     else
     {

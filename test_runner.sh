@@ -50,13 +50,37 @@ if [[ ! -d "$BENCH_DIR" ]]; then
     exit 1
 fi
  
+# --------------------------------------------------------------------
+# SAFETY: this script must NOT modify anything inside $BENCH_DIR.
+# The only filesystem changes it ever makes are:
+#   1. create the log root directory ($LOG_ROOT)
+#   2. write the summary text file ($SUMMARY_FILE)
+# Refuse to run if either of those would land inside the benchmark
+# directory (e.g. if someone passes -o benchmarks/foo.txt by mistake).
+# --------------------------------------------------------------------
+abs_bench=$(cd "$BENCH_DIR" && pwd -P)
+ 
+is_inside_bench() {
+    local target_parent
+    target_parent=$(cd "$(dirname "$1")" 2>/dev/null && pwd -P) || return 1
+    [[ "$target_parent" == "$abs_bench" || "$target_parent" == "$abs_bench"/* ]]
+}
+ 
 # Default summary filename uses a timestamp so repeated runs don't overwrite,
 # and lives inside the benchmark log directory.
 TIMESTAMP=$(date +%Y-%m-%d_%H-%M-%S)
 if [[ -z "$SUMMARY_FILE" ]]; then
+    if is_inside_bench "$LOG_ROOT/."; then
+        echo "Error: log root '$LOG_ROOT' is inside the benchmark directory. Refusing to run." >&2
+        exit 1
+    fi
     mkdir -p "$LOG_ROOT"
     SUMMARY_FILE="$LOG_ROOT/benchmark_times_${TIMESTAMP}.txt"
 else
+    if is_inside_bench "$SUMMARY_FILE"; then
+        echo "Error: summary file '$SUMMARY_FILE' is inside the benchmark directory. Refusing to run." >&2
+        exit 1
+    fi
     # Make sure the parent of an explicit -o path exists too
     mkdir -p "$(dirname "$SUMMARY_FILE")"
 fi
