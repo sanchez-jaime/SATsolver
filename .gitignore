@@ -3,6 +3,8 @@ mySAT
 
 benchmark_logs/
 
+build/
+
 # Windows executables
 *.exe
 
