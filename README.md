@@ -1,4 +1,4 @@
-### mySAT
+# mySAT
 Created by: Jaime Sanchez
 Course: ECE 51216 Digital Logic Design and Automation
 Date: May 7th, 2026
@@ -6,7 +6,7 @@ Date: May 7th, 2026
 mySAT is an implentation of the DPLL algorithm with a two-watched-literal and DLIS branching heuristic.
 
 
-## Overview Directory structure
+# Overview Directory structure
 
 - `mySAT.cpp` - solver: data structures, BCP, DLIS, DPLL, main.
 - `parser.cpp` - CNF parser to read .cnf file exntsions (DIMACS format)
@@ -15,9 +15,9 @@ mySAT is an implentation of the DPLL algorithm with a two-watched-literal and DL
 - `test_runner.sh` - helper shell script for running a set of bechmarks in the '/benchmarks' directory.
 
 
-## Indepth look at the directory structure
+# Indepth look at the directory structure
 
-# `mySAT.cpp` 
+## `mySAT.cpp` 
 Data structures:
 - `Assignment` - enum: `UNASSIGNED`, `ASSIGNED_TRUE`, `ASSIGNED_FALSE`.
 - `Literal_Assignments`- struct - current assignment plus a trail for backtracking.
@@ -40,22 +40,22 @@ Functions:
 - `print_assigments` - function - prints the expcted output per the project output format.
 - `main` - function - main function to perform DPLL and print output.
 
-# `parser.cpp`
+## `parser.cpp`
 - `parse_dimacs` - implementations of the DIMACS parser with a STREAM or File Path option call.
 
-# `parser.h`
+## `parser.h`
 - `parse_dimacs` - declartion of a function that reads a .cnf file and populates the formula data structure.
 - `Formula` - struct: holds the number of variables, clauses, and the clauses themselves.
 
 
-## How-to-compile (`mySAT.cpp`)
+# How-to-compile (`mySAT.cpp`)
 There is no MakeFiile of CMakefile to complie the mySAT solver. Rather use the following command to compile the code:
 ```
 g++ mySAT.cpp parser.cpp -o mySAT
 ```
 
 
-## How-to-run (`mySAT.cpp`)
+# How-to-run (`mySAT.cpp`)
 
 ```
 ./mySAT <path_to_cnf_file.cnf>
@@ -65,7 +65,7 @@ or use any of the helpful shell scripts:
 - `test_runner.sh` - runs multitudes of CNF benchmarks, uses the Uniform Random-3-SAT problem from https://www.cs.ubc.ca/~hoos/SATLIB/benchm.html
 
 
-## Expected output
+# Expected output
 Option 1 (SAT):
 ```
 Output: `RESULT:SAT` followed by `\n` + `ASSIGNMENT:1=1 2=0 3=1 …` for SAT.
