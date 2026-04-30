@@ -8,6 +8,44 @@ Date: May 7th, 2026
 mySAT is an implentation of the DPLL algorithm with a two-watched-literal and DLIS branching heuristic.
 
 
+# How-to-compile (`mySAT.cpp`)
+There is no Makefile or CMakefile to complie the mySAT solver. Rather use the following command to compile the code:
+```
+g++ mySAT.cpp parser.cpp -o mySAT
+```
+
+
+# How-to-run (`mySAT.cpp`)
+
+```
+./mySAT <path_to_cnf_file>.cnf
+```
+
+example:
+```
+./mySAT class_benchmark.cnf 
+```
+
+or use any of the helpful shell scripts:
+- `simple_test_runner.sh` - runs 6 claude generated CNF benchmakrs to test the barebones SAT solver.
+- `test_runner.sh` - runs multitudes of CNF benchmarks, uses the Uniform Random-3-SAT problem set from https://www.cs.ubc.ca/~hoos/SATLIB/benchm.html
+
+
+# Expected Output
+Option 1 (SAT):
+```
+RESULT:SAT
+ASSIGNMENT:1=0 2=1 3=0 4=1
+```
+
+OR
+
+Option 2 (UNSAT):
+```
+RESULT:UNSAT
+```
+
+
 # Overview Directory structure
 
 - `mySAT.cpp` - solver: data structures, BCP, DLIS, DPLL, main.
@@ -48,41 +86,3 @@ Functions:
 ## `parser.h`
 - `parse_dimacs` - declartion of a function that reads a .cnf file and populates the formula data structure.
 - `Formula` - struct - holds the number of variables, clauses, and the clauses themselves.
-
-
-# How-to-compile (`mySAT.cpp`)
-There is no Makefile or CMakefile to complie the mySAT solver. Rather use the following command to compile the code:
-```
-g++ mySAT.cpp parser.cpp -o mySAT
-```
-
-
-# How-to-run (`mySAT.cpp`)
-
-```
-./mySAT <path_to_cnf_file>.cnf
-```
-
-example:
-```
-./mySAT class_benchmark.cnf 
-```
-
-or use any of the helpful shell scripts:
-- `simple_test_runner.sh` - runs 6 claude generated CNF benchmakrs to test the barebones SAT solver.
-- `test_runner.sh` - runs multitudes of CNF benchmarks, uses the Uniform Random-3-SAT problem set from https://www.cs.ubc.ca/~hoos/SATLIB/benchm.html
-
-
-# Expected Output
-Option 1 (SAT):
-```
-RESULT:SAT
-ASSIGNMENT:1=0 2=1 3=0 4=1
-```
-
-OR
-
-Option 2 (UNSAT):
-```
-RESULT:UNSAT
-```
