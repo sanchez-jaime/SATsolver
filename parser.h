@@ -46,8 +46,3 @@ struct Formula {
  * Returns true on success; prints to stderr and returns false on error.
  * ----------------------------------------------------------------------- */
 bool parse_dimacs(const std::string& path, Formula& formula);
-
-/* -----------------------------------------------------------------------
- * parse_dimacs  (stream overload – handy for unit-testing)
- * ----------------------------------------------------------------------- */
-bool parse_dimacs(std::istream& in, Formula& formula);
