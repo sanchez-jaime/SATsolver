@@ -60,22 +60,29 @@ g++ mySAT.cpp parser.cpp -o mySAT
 # How-to-run (`mySAT.cpp`)
 
 ```
-./mySAT <path_to_cnf_file.cnf>
+./mySAT <path_to_cnf_file>.cnf
 ```
+
+example:
+```
+./mySAT class_benchmark.cnf 
+```
+
 or use any of the helpful shell scripts:
 - `simple_test_runner.sh` - runs 6 claude generated CNF benchmakrs to test the barebones SAT solver.
 - `test_runner.sh` - runs multitudes of CNF benchmarks, uses the Uniform Random-3-SAT problem set from https://www.cs.ubc.ca/~hoos/SATLIB/benchm.html
 
 
-# Expected output
+# Expected Output
 Option 1 (SAT):
 ```
-Output: `RESULT:SAT` followed by `\n` + `ASSIGNMENT:1=1 2=0 3=1 …` for SAT.
+RESULT:SAT
+ASSIGNMENT:1=0 2=1 3=0 4=1
 ```
 
 OR
 
 Option 2 (UNSAT):
 ```
-Output: `RESULT:UNSAT`
+RESULT:UNSAT
 ```
