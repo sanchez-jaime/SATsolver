@@ -1,11 +1,4 @@
 c Every clause starts with "1 2", so all four clauses should end up in
-c watches_pos[1] and watches_pos[2]. This verifies that the watch-list
-c buckets are vectors that correctly accumulate multiple entries.
-c After init expect:
-c   watches_pos[1] = {0, 1, 2, 3}
-c   watches_pos[2] = {0, 1, 2, 3}
-c   watches_neg    = {}
-c   unit_propagation_queue = {}
 p cnf 4 4
 1 2 3 0
 1 2 4 0
