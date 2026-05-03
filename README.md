@@ -26,7 +26,7 @@ If you want to compile without the DLIS branching heuristic, you can set the fol
 
 example:
 ```
-./mySAT class_benchmark.cnf 
+./mySAT simple_benchmarks/mized_sizes.cnf 
 ```
 
 or use any of the helpful shell scripts:
