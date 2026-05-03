@@ -14,6 +14,9 @@ There is no Makefile or CMakefile to complie the mySAT solver. Rather use the fo
 g++ mySAT.cpp parser.cpp -o mySAT
 ```
 
+If you want to compile without the DLIS branching heuristic, you can set the following in `mySAT.cpp`:
+`#define DLSI_INHIBITED false` to `#define DLSI_INHIBITED true`
+
 
 # How-to-run (`mySAT.cpp`)
 
