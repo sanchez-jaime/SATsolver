@@ -1,0 +1,7 @@
+c Mix of unit, binary, ternary, and quaternary clauses.
+p cnf 4 5
+1 0
+2 3 0
+-1 -2 4 0
+2 3 4 0
+-3 -4 0

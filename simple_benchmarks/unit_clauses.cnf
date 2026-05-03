@@ -1,0 +1,5 @@
+c Tests unit-clause handling: the two unit clauses should end up in the
+p cnf 3 3
+1 0
+-2 0
+3 2 0
