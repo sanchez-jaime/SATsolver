@@ -1,6 +1,0 @@
-c Every clause starts with "1 2", so all four clauses should end up in
-p cnf 4 4
-1 2 3 0
-1 2 4 0
-1 2 -3 0
-1 2 -4 0

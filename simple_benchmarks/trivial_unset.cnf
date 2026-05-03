@@ -1,4 +1,0 @@
-c Two contradictory unit clauses. Not caught by the initializer itself
-p cnf 1 2
-1 0
--1 0
