@@ -49,9 +49,13 @@ RESULT:UNSAT
 ```
 
 
+# Additional Documentation
+Refer to the Final Project Report pdf for more details on the implementation, design decisions, and performance of the mySAT solver.
+
+
 # Overview Directory structure
 
-- `mySAT.cpp` - solver: data structures, BCP, DLIS, DPLL, main.
+- `mySAT.cpp` - solver with data structures: BCP, DLIS, and DPLL.
 - `parser.cpp` - CNF parser to read .cnf file exntsions (DIMACS format)
 - `parser.h` - header for parser.
 - `simple_test_runner.sh` - helper shell script for running simple bechmarks.
@@ -84,7 +88,7 @@ Functions:
 - `main` - function - main function to perform DPLL and print output.
 
 ## `parser.cpp`
-- `parse_dimacs` - implementations of the DIMACS parser with a STREAM or File Path option call.
+- `parse_dimacs` - implementation of the DIMACS parser with a STREAM or File Path option call.
 
 ## `parser.h`
 - `parse_dimacs` - declartion of a function that reads a .cnf file and populates the formula data structure.
