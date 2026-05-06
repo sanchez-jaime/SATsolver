@@ -9,7 +9,10 @@ mySAT is an implentation of the DPLL algorithm with a two-watched-literal and DL
 
 
 # How-to-compile (`mySAT.cpp`)
-There is no Makefile or CMakefile to complie the mySAT solver. Rather use the following command to compile the code:
+There is a Makefile or CMakefile to compile the mySAT solver. Use the command `make` to compile or `make clean` to remove the built executable. 
+
+
+Alternatively, you can compile the solver with the following command:
 ```
 g++ mySAT.cpp parser.cpp -o mySAT
 ```
@@ -32,6 +35,10 @@ example:
 or use any of the helpful shell scripts:
 - `simple_test_runner.sh` - runs 6 claude generated CNF benchmakrs to test the barebones SAT solver.
 - `test_runner.sh` - runs multitudes of CNF benchmarks, uses the Uniform Random-3-SAT problem set from https://www.cs.ubc.ca/~hoos/SATLIB/benchm.html
+
+
+# Possible Issuse
+When trying to delete the unzip folder `56_C++` and you encounter issues with `/.git/`. Run the following command to give user write access to the whole unziped directory: `chmod -R u+w <directory>`
 
 
 # Expected Output
