@@ -9,7 +9,7 @@ mySAT is an implentation of the DPLL algorithm with a two-watched-literal and DL
 
 
 # How-to-compile (`mySAT.cpp`)
-There is a Makefile or CMakefile to compile the mySAT solver. Use the command `make` to compile or `make clean` to remove the built executable. 
+There is a Makefile to compile the mySAT solver. Use the command `make` to compile or `make clean` to remove the built executable. 
 
 
 Alternatively, you can compile the solver with the following command:
